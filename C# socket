@@ -1,0 +1,94 @@
+C#服务端：
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string ip = "127.0.0.1";
+            int port = 8000;
+            try{
+                IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(ip),port);
+                Socket listener = new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
+                listener.Bind(ipe);
+                // 开始监听 最大允许处理1000个连接
+                listener.Listen(1000);
+                Console.WriteLine("开始监听");
+                // 开始接受客户端请求 程序在这里会卡阻住
+                Socket mySocket=listener.Accept();
+
+                byte[] bs = new byte[1024];
+                int n = mySocket.Receive(bs);
+                Console.WriteLine(UTF8Encoding.UTF8.GetString(bs));
+                // 将客户端发来的数据返回给客户端
+                mySocket.Send(bs);
+                // 半闭与客户端的连接
+                mySocket.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+
+        }
+    }
+}
+C# 客户端：
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+
+namespace Client1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+               // 服务器ip地址
+            string ip = "127.0.0.1";
+            // 服务器端口
+            int port = 8000;
+            try
+            {
+                // 获得终端
+                IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(ip), port);
+                // 创建Socket
+                Socket client = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                // 开始连接服务器，程序在这里会阻住，直接连接成功或失败
+                client.Connect(ipe);
+                Console.WriteLine("连接到服务器");
+                //向服务器发送数据
+                string data = "hello,world";
+                byte[] bs=UTF8Encoding.UTF8.GetBytes(data);
+                client.Send(bs);
+                // 接收到服务器的数据
+                byte[] rev = new byte[256];
+                // 接收到服务器返回的数据
+                client.Receive(rev);
+                Console.WriteLine(UTF8Encoding.UTF8.GetString(rev));
+                // 关闭连接
+                client.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+    }
+}
+
+
